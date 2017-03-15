@@ -3,3 +3,4 @@ devel
 bin
 *.pcd
 *.png
+data/
