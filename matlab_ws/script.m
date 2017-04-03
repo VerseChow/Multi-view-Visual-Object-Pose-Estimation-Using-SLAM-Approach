@@ -30,3 +30,11 @@ for k=1:N
         writePCDFile(list_3d, ['/home/kar/Dropbox/Michigan_research/MRF_data_exp/scene_test/segment_k_', num2str(label_output(k, 6)), '.pcd']);
    end
 end
+
+%% Feature extract
+
+%put a list of images into 'data' folder
+run('vlfeat-0.9.20/toolbox/vl_setup')
+img_list = dir('data/*.png');
+imgs = string({img_list.name});
+extract_features(imgs,'data');

@@ -1,14 +1,14 @@
-function [ feats ] = extract_features(images,stride,feat_type,folder)
+function [ feats ] = extract_features(images,folder,stride,feat_type)
 %Takes in a list of images and extract, either SIFT or SURF features
 
 switch nargin
-    case 1
+    case 2
         stride = 3;
         feat_type = 'SIFT';
-    case 2
+    case 3
         stride = stride;
         feat_type = 'SIFT';
-    case 3
+    case 4
         stride = stride;
         feat_type = feat_type;
 end
