@@ -5,28 +5,42 @@ function readData( data_path )
 %   root file path.
     global Data;
     source_dir = pwd;
-    d= dir([source_dir, data_path, '*.txt']);
-    count = length(d);
+    d_u= dir([source_dir, data_path, '*odom_base_tf.txt']);
+    d_cam_tf = dir([source_dir, data_path, '*base_cam_tf.txt']);
+    count = length(d_u);
     fprintf('Found %d txt files, preparing for data\n', count);
     if count == 0
-       dip('No data found, check the data path'); 
+       disp('No data found, check the data path'); 
        return;
     else
-        Data.transpose_Matirix = cell(count, 1);
+        Data.base_transpose_Matrix = cell(count,1);
+        Data.cam_transpose_Matrix = cell(count, 1);
+        
         Data.u = cell(count-1, 1);
         for i = 1:count
-            FileName = d(i).name;
-            fprintf(1, 'Now reading %s\n', FileName);
-            fid=fopen(fullfile(source_dir, data_path, FileName));
+            FileName_u = d_u(i).name;
+            FileName_cam = d_cam_tf(i).name;
+            fprintf(1, 'Now reading %s\n', FileName_u);
+            fid=fopen(fullfile(source_dir, data_path, FileName_u));
             temp = textscan(fid, '%f');
-            transpose_Matirix = eye(4);
+            transpose_Matrix = eye(4);
             rotm = quatern2rotMat(temp{1}(4:end)');
-            transpose_Matirix(1:3, 4) = temp{1}(1:3);
-            transpose_Matirix(1:3, 1:3) = rotm;
-            Data.transpose_Matirix{i} = transpose_Matirix;
+            transpose_Matrix(1:3, 4) = temp{1}(1:3);
+            transpose_Matrix(1:3, 1:3) = rotm;
+            Data.base_transpose_Matrix{i} = transpose_Matrix;
+            
+            %%%read cam_base transform
+            fprintf(1, 'Now reading %s\n', FileName_cam);
+            fid=fopen(fullfile(source_dir, data_path, FileName_cam));
+            temp = textscan(fid, '%f');
+            transpose_Matrix = eye(4);
+            rotm = quatern2rotMat(temp{1}(4:end)');
+            transpose_Matrix(1:3, 4) = temp{1}(1:3);
+            transpose_Matrix(1:3, 1:3) = rotm;
+            Data.cam_transpose_Matrix{i} = transpose_Matrix;
         end
         for i = 1:count-1
-            temp = Data.transpose_Matirix{i+1}(1:3,4) - Data.transpose_Matirix{i}(1:3,4);
+            temp = Data.base_transpose_Matrix{i+1}(1:3,4) - Data.base_transpose_Matrix{i}(1:3,4);
             Data.u{i} = temp;
         end
     end
