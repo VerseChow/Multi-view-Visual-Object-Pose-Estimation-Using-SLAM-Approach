@@ -34,7 +34,8 @@ end
 %% Feature extract
 
 %put a list of images into 'data' folder
-run('./vlfeat-0.9.20/toolbox/vl_setup.m')
-img_list = dir('../data/*.png');
-imgs = string({img_list.name});
-extract_features(imgs,'data');
+run('./vlfeat/toolbox/vl_setup.m')
+data_path = '../data/eecs568_data/1/';
+img_list = dir([data_path, 'scene_1_*.png']);
+imgs = {img_list.name};
+feats = extract_features(imgs,data_path);
