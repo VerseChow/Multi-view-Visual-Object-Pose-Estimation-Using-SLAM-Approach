@@ -38,7 +38,7 @@ end
 %store the descriptor, x, y, x, y, z, frame, id
 hash_frame.rgb_pix = f_curr(:, indices);
 hash_frame.rgb_feat = d_curr(:, indices);
-hash_frame.depth_loc = f_3d_cam;
+hash_frame.depth_loc = f_3d_curr(:, indices);
 
 %plot the features on the image
 if(plot_flag==1)

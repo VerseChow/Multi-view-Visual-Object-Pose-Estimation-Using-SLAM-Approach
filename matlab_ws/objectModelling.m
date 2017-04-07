@@ -1,4 +1,4 @@
-function hash_table = objectModelling(folder_path)
+function hash_table = objectModelling(folder_path, hash_table_name)
 
 %list all the image files in the folder
 image_list = dir([folder_path, '/scene*.png']);
@@ -17,6 +17,12 @@ num_images = length({image_list.name});
 prev_image = [folder_path, '/', image_list(1).name];
 prev_pcd = char(strcat(folder_path, '/', pcd_list(1)));
 prev_odom_pcd = [folder_path, '/', pcd_odom_list(1).name];
+
+hash_table=[];
+hash_table.rgb_pix=[];
+hash_table.rgb_feat = [];
+hash_table.depth_loc = [];
+
 for i=2:num_images-1
     %curr_frame
     curr_image = [folder_path, '/', image_list(i).name];
@@ -52,16 +58,15 @@ for i=2:num_images-1
     best_2.rgb_pix = temp_2.rgb_pix(:, matches23(1, :));
     best_2.rgb_feat = temp_2.rgb_feat(:, matches23(1, :));
     best_2.depth_loc = temp_2.depth_loc(:, matches23(1, :));    
+    best_2.depth_loc = getFeatures3DwrtObjectCenter(best_2.depth_loc, i, folder_path);
     
-    writePCDFile(best_2.depth_loc', [folder_path, '/features_3d_', num2str(i), '.pcd']);
- 
+    hash_table.rgb_pix = [hash_table.rgb_pix, best_2.rgb_pix];
+    hash_table.rgb_feat = [hash_table.rgb_feat, best_2.rgb_feat];
+    hash_table.depth_loc = [hash_table.depth_loc, best_2.depth_loc];
+    
 end
-
-% match features 2 to 1 and 2 to 3 images and store the best matches and
-% its 3D pose with respect to 2 
-% Iterate from 2 to num_images-1
-
-
+writePCDFile(hash_table.depth_loc', [folder_path, '/features_3d_hashed.pcd']);
+save([folder_path, '/', hash_table_name], 'hash_table');
 end
 
 
