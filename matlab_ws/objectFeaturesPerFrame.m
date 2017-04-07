@@ -22,18 +22,23 @@ f_3d_curr = zeros(3, size(f_curr, 2));
 
 disp('before the forloop');
 for i=1:size(f_curr, 2)
-    disp([int32(f_curr(1, i)), int32(f_curr(2, i))]);
+    %disp([int32(f_curr(1, i)), int32(f_curr(2, i))]);
     pt_3d = get3DPoint(int32(f_curr(1, i)), int32(f_curr(2, i)), pcd_odom_data)';
     if(pt_3d(3)>table_z) %If the object is above the table
         f_3d_curr(:, i)=pt_3d;
     end    
 end
 
-%store the descriptor, x, y, x, y, z, frame, id
 indices = find(f_3d_curr(1, :)~=0);
+f_3d_cam = zeros(3, size(indices, 2));
+for i = 1:size(indices, 2);
+    f_3d_cam(:, i)=get3DPoint(int32(f_curr(1, indices(i))), int32(f_curr(2, indices(i))), pcd_data)';
+end
+
+%store the descriptor, x, y, x, y, z, frame, id
 hash_frame.rgb_pix = f_curr(:, indices);
 hash_frame.rgb_feat = d_curr(:, indices);
-hash_frame.depth_loc = f_3d_curr(:, indices);
+hash_frame.depth_loc = f_3d_cam;
 
 %plot the features on the image
 if(plot_flag==1)
@@ -42,5 +47,6 @@ if(plot_flag==1)
     plot(int32(f_curr(1, :)), int32(f_curr(2, :)), 'r*'); hold on;
     plot(int32(f_curr(1, indices)), int32(f_curr(2, indices)), 'g*'); hold on;
 end
+
 
 end
