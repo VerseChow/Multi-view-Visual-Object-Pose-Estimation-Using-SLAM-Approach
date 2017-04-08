@@ -39,3 +39,15 @@ data_path = '../data/eecs568_data/1/';
 img_list = dir([data_path, 'scene_1_*.png']);
 imgs = {img_list.name};
 feats = extract_features(imgs,data_path);
+
+
+%% Observation function
+global Table;
+Table = load('hash_table_1');
+image_path2 = '/home/kar/workspace/eecs568_final/data/eecs568_data/1/scene_1_1.png';
+pcd_odom_path2 ='/home/kar/workspace/eecs568_final/data/eecs568_data/1/scene_1_1_odom.pcd';
+pcd_path2 ='/home/kar/workspace/eecs568_final/data/eecs568_data/1/scene_1_1.pcd';
+observed_image = imread(image_path2);
+observed_pcd = readPCDFile_kar(pcd_path2);
+observed_pcd_odom = readPCDFile_kar(pcd_odom_path2);
+z = hashTableLookup(observed_image, observed_pcd, observed_pcd_odom, []);
