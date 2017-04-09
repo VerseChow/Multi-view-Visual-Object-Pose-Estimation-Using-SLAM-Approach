@@ -1,4 +1,4 @@
-function z = hashTableLookup(observed_image, observed_pcd, observed_pcd_base, transform_matrix)
+function z = hashTableLookup(observed_image, observed_pcd, observed_pcd_base)
 global Table;
 %observed_image is in the mat format after imread 640x480
 %observed_pcd is the point cloud in mat 307200x3 format

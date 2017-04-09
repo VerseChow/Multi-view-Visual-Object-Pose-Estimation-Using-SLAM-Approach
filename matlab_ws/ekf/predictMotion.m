@@ -8,8 +8,8 @@ function predictMotion(u)
     
     M = Param.M;
     
-    num_landmark = State.nl;
-    Sigma = State.sigma;
+    num_landmark = State.nL;
+    Sigma = State.Sigma;
     Mu = State.mu; 
     predMu = Mu;
     
@@ -24,6 +24,6 @@ function predictMotion(u)
     predMu(4) = predMu(4);
     State.mu = predMu;
     
-    State.sigma = Gt*Sigma*Gt'+Vt*M*Vt';
+   % State.sigma = Gt*Sigma*Gt'+Vt*M*Vt';
 end
 

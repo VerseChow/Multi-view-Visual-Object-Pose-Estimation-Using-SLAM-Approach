@@ -1,16 +1,21 @@
-function idex = initialize_new_landmark(z, R)
-    global Param;
+function idex = initialize_new_landmark(z)
+%z contains x,y,z and index from hash table
     global State;
-    State.Ekf.nL = State.Ekf.nL + 1;
-    State.Ekf.sL = [State.Ekf.sL, z(3)];
-    robot_pose = State.Ekf.mu(State.Ekf.iR);
-    new_landmark = zeros(2,1);
-    new_landmark(1) = robot_pose(1) + z(1)*cos(minimizedAngle(z(2)+robot_pose(3)));
-    new_landmark(2) = robot_pose(2) + z(1)*sin(minimizedAngle(z(2)+robot_pose(3)));
-    State.Ekf.mu = [State.Ekf.mu; new_landmark];
-    landmarkSigma = flintmax.*eye(2) ;
-    State.Ekf.Sigma= blkdiag(State.Ekf.Sigma, landmarkSigma);
-    idex = State.Ekf.nL;
+    global Table;
+    State.nL = State.nL + 1;
+    State.sL = [State.sL, z(4)];
+    robot_pose = State.mu(State.iR);
+    
+    new_landmark = robot_pose(1:3) + Table.hash_table.depth_loc(:,z(4));
+    
+    State.mu = [State.mu; new_landmark];
+    landmarkSigma = flintmax.*eye(3) ;
+    State.Sigma= blkdiag(State.Sigma, landmarkSigma);
+    idex = State.nL;
+    
+    State.iL{idex} = 3*State.nL+2:4+3*State.nL;
+    State.iM = [State.iM; [3*State.nL+2:4+3*State.nL]'];
+    
 %     angle = minimizedAngle(z(2)+State.Ekf.mu(3));
 %     L = zeros(2, 3);
 %     W = zeros(2, 2);
