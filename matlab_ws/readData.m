@@ -7,19 +7,31 @@ function readData( data_path )
     source_dir = pwd;
     d_u= dir([source_dir, data_path, '*odom_base_tf.txt']);
     d_cam_tf = dir([source_dir, data_path, '*base_cam_tf.txt']);
+    d_img = dir([source_dir, data_path, '*.png']);
+    
+    pcd_list = dir([source_dir, data_path, '/scene_*.pcd']);
+
+    %list all the pcd_odom files in the folder
+    pcd_odom_list = dir([source_dir, data_path, '/scene_*_odom.pcd']);
+
     count = length(d_u);
     fprintf('Found %d txt files, preparing for data\n', count);
     if count == 0
        disp('No data found, check the data path'); 
        return;
     else
-        Data.base_transpose_Matrix = cell(count,1);
+        Data.base_transpose_Matrix = cell(count, 1);
         Data.cam_transpose_Matrix = cell(count, 1);
-        
+        Data.image = cell(count, 1);
         Data.u = cell(count-1, 1);
+        Data.pcd = cell(count, 1);
+        Data.pcd_base = cell(count, 1);
+        Data.num = count;
         for i = 1:count
             FileName_u = d_u(i).name;
             FileName_cam = d_cam_tf(i).name;
+            FileName_img = d_img(i).name;
+            
             fprintf(1, 'Now reading %s\n', FileName_u);
             fid=fopen(fullfile(source_dir, data_path, FileName_u));
             temp = textscan(fid, '%f');
@@ -38,6 +50,15 @@ function readData( data_path )
             transpose_Matrix(1:3, 4) = temp{1}(1:3);
             transpose_Matrix(1:3, 1:3) = rotm;
             Data.cam_transpose_Matrix{i} = transpose_Matrix;
+            
+            %%%read image
+            fprintf(1, 'Now reading %s\n', FileName_img);
+            Data.image{i} = imread(fullfile(source_dir, data_path, d_img(i).name));
+            
+            %%%read pcd 
+            fprintf('Now reading pcd file');
+            Data.pcd{i} = readPCDFile_kar(fullfile(source_dir, data_path, pcd_list(i).name));
+            Data.pcd_base{i} = readPCDFile_kar(fullfile(source_dir, data_path, pcd_odom_list(i).name));
         end
         for i = 1:count-1
             temp = Data.base_transpose_Matrix{i+1}(1:3,4) - Data.base_transpose_Matrix{i}(1:3,4);
