@@ -5,14 +5,14 @@ function readData( data_path )
 %   root file path.
     global Data;
     source_dir = pwd;
-    d_u= dir([source_dir, data_path, '*odom_base_tf.txt']);
-    d_cam_tf = dir([source_dir, data_path, '*base_cam_tf.txt']);
-    d_img = dir([source_dir, data_path, '*.png']);
-    
-    pcd_list = dir([source_dir, data_path, '/scene_*.pcd']);
+    d_u= dir([source_dir, data_path, 'scene_0_*_odom_base_tf.txt']);
+    d_cam_tf = dir([source_dir, data_path, 'scene_0_*_base_cam_tf.txt']);
+    d_img = dir([source_dir, data_path, 'scene_0_*.png']);
+    d_gt = dir([source_dir, data_path, 'scene_0_*_obj_pose.txt']);
+    pcd_list = dir([source_dir, data_path, 'scene_0_*.pcd']);
 
     %list all the pcd_odom files in the folder
-    pcd_odom_list = dir([source_dir, data_path, '/scene_*_odom.pcd']);
+    %pcd_odom_list = dir([source_dir, data_path, 'scene_0_*_odom.pcd']);
 
     count = length(d_u);
     fprintf('Found %d txt files, preparing for data\n', count);
@@ -27,12 +27,12 @@ function readData( data_path )
         Data.pcd = cell(count, 1);
         Data.pcd_base = cell(count, 1);
         Data.num = count;
-        Data.theta = [];
+        Data.groundtruth = zeros(3, count);
         for i = 1:count
             FileName_u = d_u(i).name;
             FileName_cam = d_cam_tf(i).name;
             FileName_img = d_img(i).name;
-            
+            FileName_gt = d_gt(i).name;
             fprintf(1, 'Now reading %s\n', FileName_u);
             fid=fopen(fullfile(source_dir, data_path, FileName_u));
             temp = textscan(fid, '%f');
@@ -41,7 +41,6 @@ function readData( data_path )
             transpose_Matrix(1:3, 4) = temp{1}(1:3);
             transpose_Matrix(1:3, 1:3) = rotm;
             Data.base_transpose_Matrix{i} = transpose_Matrix;
-                Data.theta = [Data.theta acos(transpose_Matrix(1,1))];
 
             %%%read cam_base transform
             fprintf(1, 'Now reading %s\n', FileName_cam);
@@ -53,20 +52,32 @@ function readData( data_path )
             transpose_Matrix(1:3, 1:3) = rotm;
             Data.cam_transpose_Matrix{i} = transpose_Matrix;
             
+            %%%read ground truth
+            fprintf(1, 'Now reading %s\n', FileName_gt);
+            fid=fopen(fullfile(source_dir, data_path, FileName_gt));
+            temp = textscan(fid, '%s %f %f %f %f %f %f');
+            gt = [temp{1, 2}(1), temp{1, 3}(1), temp{1, 4}(1)]';
+            Data.groundtruth(:,i) = gt;
+            
             %%%read image
             fprintf(1, 'Now reading %s\n', FileName_img);
             Data.image{i} = imread(fullfile(source_dir, data_path, d_img(i).name));
             
             %%%read pcd 
             fprintf('Now reading pcd file');
-            Data.pcd{i} = readPCDFile_kar(fullfile(source_dir, data_path, pcd_list(i).name));
-            Data.pcd_base{i} = readPCDFile_kar(fullfile(source_dir, data_path, pcd_odom_list(i).name));
+            Data.pcd{i} = readPCDFile_kar(fullfile(source_dir, data_path, pcd_list(2*i-1).name));
+            Data.pcd_base{i} = readPCDFile_kar(fullfile(source_dir, data_path, pcd_list(2*i).name));
+            
+            
+            
         end
         for i = 1:count-1
             temp =  inv(Data.base_transpose_Matrix{i+1})*Data.base_transpose_Matrix{i};
             Data.G{i} = temp;
         end
     end
+    
+    fprintf('Done Reading!\n');
 
 end
 
