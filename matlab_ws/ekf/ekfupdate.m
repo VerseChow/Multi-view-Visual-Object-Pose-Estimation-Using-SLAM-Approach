@@ -31,7 +31,8 @@ function count_landmark = ekfupdate(z)
     for i=1:num
         if Li(i)~=-1
 %%%%%%%%%%%%%Stack the observation to batch type
-            df = Table.hash_table.depth_loc(:,Li(i));
+
+            df = Table.hash_table.depth_loc(:,State.sL(Li(i)));
             zhat(3*j-2) = State.mu(1)+df(1);
             zhat(3*j-1) = State.mu(2)+df(2);
             zhat(3*j) = State.mu(3)+df(3);
@@ -48,10 +49,10 @@ function count_landmark = ekfupdate(z)
 %%%%%%%%%%%%%Correction Step of Batch
     S = Ht*State.Sigma*Ht'+R;
     Kt = State.Sigma*Ht'/S;
-    disp(Kt);
+%     disp(Kt);
     State.mu = State.mu+Kt*dz;
     temp = eye(size(State.Sigma))-Kt*Ht;
-    State.Sigma = temp*State.Sigma*temp'+Kt*R*Kt';
+    State.Sigma = temp*State.Sigma;
    
     count_landmark = count;
 end

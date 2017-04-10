@@ -6,8 +6,6 @@ function predictMotion(u)
     
     %Qf = Param.Qf;
     
-    M = Param.M;
-    
     num_landmark = State.nL;
     Sigma = State.Sigma;
     Mu = State.mu; 
@@ -15,15 +13,12 @@ function predictMotion(u)
     
     Gt = eye(4+3*num_landmark);
     Vt = zeros(4+3*num_landmark,3);
-    
+    Gt(1:4, 1:4) = u+Param.M;
     Vt(1:2,1:2) = eye(2);
     
-    predMu(1) = predMu(1)-u(1);
-    predMu(2) = predMu(2)-u(2);
-    predMu(3) = predMu(3);
-    predMu(4) = predMu(4);
+    predMu(1:4) = u * predMu(1:4);
     State.mu = predMu;
     
-   % State.sigma = Gt*Sigma*Gt'+Vt*M*Vt';
+    State.Sigma = Gt*Sigma*Gt';
 end
 

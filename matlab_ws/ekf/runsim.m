@@ -1,5 +1,6 @@
 function [path_ekf,path_gt]=runsim() %pauseLen, makeVideo)
 %readData('/0_base_link/');
+close all;
 addpath('./../');
 addpath('./../vlfeat-0.9.20/toolbox');
 vl_setup;
@@ -43,14 +44,14 @@ State.nL    = 0;          % scalar number of landmarks
 % end
 % Initalize Params
 %===================================================
-Param.initialStateMean = [0.392657 0.751307 0.861234 0]';%%！！！！！！！！！！！！！！！！initialize with first feature detected
+Param.initialStateMean = [0.56415 0.85277 0.86562 1]';%%！！！！！！！！！！！！！！！！initialize with first feature detected
 
 % Motion noise.
-Param.M = diag([0.01 0.01 0.01].^2); % std of noise proportional to alphas
+Param.M = diag([0.01 0.01 0.01 0].^2); % std of noise proportional to alphas
 
 % Standard deviation of Gaussian sensor noise (independent of distance)
 Param.beta = [0.1, 0.1, 0.1]; % [m, m, m]
-Param.R = diag(Param.beta.^2);
+Param.R = diag(Param.beta.^1);
 
 % Step size between filter updates, can be less than 1.
 Param.deltaT=0.1; % [s]
@@ -60,12 +61,15 @@ Param.deltaT=0.1; % [s]
 % Initialize State
 %===================================================
 State.mu = Param.initialStateMean;
-State.Sigma = diag([0.1, 0.1, 0.1, 0.1]);%%%%%%%%%!!!!!!!!!!!!!!!!!!!!!!!!!!!!initialize later with first feature detected
+State.Sigma = diag([0.01, 0.01, 0.01, 0]);%%%%%%%%%!!!!!!!!!!!!!!!!!!!!!!!!!!!!initialize later with first feature detected
 
 %z = hashTableLookup(Data.image{1}, Data.pcd{1}, Data.pcd_base{1});
 
 path_ekf = zeros(2,Data.num-1);
 path_gt = zeros(2,Data.num-1);
+    
+State.mu = Param.initialStateMean;
+
 for t = 1:Data.num-1
     
     State.t = t;
@@ -73,7 +77,15 @@ for t = 1:Data.num-1
     % data available to your filter at this time step
     %=================================================
     z = hashTableLookup(Data.image{t}, Data.pcd{t}, Data.pcd_base{t});
-    u = Data.u{t};
+%     mean_z = mean(z_temp);
+%     z = [];
+%     num_z = size(z_temp,1);
+%     for nm = 1: num_z
+%         if abs(sum(mean_z) - sum(z_temp(nm,:)) )< 10
+%             z = [z;z_temp(nm,:)];
+%         end
+%     end
+    u = Data.G{t};
     %=================================================
     %TODO: update your filter here based upon the
     %      motionCommand and observation
@@ -82,7 +94,7 @@ for t = 1:Data.num-1
     ekfupdate(z);
     path_ekf(:, t) = State.mu(1:2);
     
-    disp(State.mu(State.iR));
+%     disp(State.mu(State.iR));
     %=================================================
     %TODO: plot and evaluate filter results here
     %=================================================
@@ -104,22 +116,21 @@ for t = 1:Data.num-1
 %     end
 end
 State.mu = Param.initialStateMean;
-State.Sigma = zeros(4);
-    
+%State.Sigma = zeros(4);
+
 for t = 1:Data.num-1
     
     State.t = t;
-    u = Data.u{t};
-
-    predictMotion(u);
+    u = Data.G{t};
+    predictMotion_pure(u);
     path_gt(:, t) = State.mu(1:2);
-
-    disp(State.mu(State.iR));
+    
 end
 plot(path_ekf(1,:), path_ekf(2,:));
 hold on;
-plot(path_gt(1,:), path_gt(2,:))
-
+plot(path_gt(1,:), path_gt(2,:));
+legend('after','before');
+axis equal;
 
 
 
