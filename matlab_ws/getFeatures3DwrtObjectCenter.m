@@ -1,11 +1,11 @@
-function feature_3d_out = getFeatures3DwrtObjectCenter(feature_3d_in, id, path)
+function feature_3d_out = getFeatures3DwrtObjectCenter(feature_3d_in, file)
 %use the id to load the 3d point of the object annotated by Linh
-obj_poses_path = [path, '/poses/scene_1_', num2str(id), '_obj_pose.txt'];
-fid = fopen(obj_poses_path, 'rt');
+%obj_poses_path = [path, '/poses/scene_1_', num2str(id), '_obj_pose.txt'];
+fid = fopen(file, 'rt');
 format = '%s %f %f %f %f %f %f\n';
 C = textscan(fid, format);
 obj_pose_odom = cell2mat(C(2:end));
-obj_pose_odom = obj_pose_odom(2, :); %T_{obj}^{odom}
+obj_pose_odom = obj_pose_odom(1, :); %T_{obj}^{odom}
 T_obj_odom = [euler2rotMat(obj_pose_odom(4:6)), obj_pose_odom(1:3)'; 0 0 0 1];
 fclose(fid);
 

@@ -3,7 +3,8 @@ function count_landmark = ekfupdate(z)
     global State;
     global Table;
     % batch update
-
+    offset = 0.00;
+    %offset = 0.05;
     % returns state vector indices pairing observations with landmarks      
     Li = da_nn(z);
     
@@ -36,8 +37,8 @@ function count_landmark = ekfupdate(z)
             zhat(3*j-2) = State.mu(1)+df(1);
             zhat(3*j-1) = State.mu(2)+df(2);
             zhat(3*j) = State.mu(3)+df(3);
-            dz(3*j-2) = z(i,1)-zhat(3*j-2)-0.05;
-            dz(3*j-1) = z(i,2)-zhat(3*j-1)+0.05;
+            dz(3*j-2) = z(i,1)-zhat(3*j-2)-offset;
+            dz(3*j-1) = z(i,2)-zhat(3*j-1)+offset;
             dz(3*j) = z(i,3)-zhat(3*j);
             Ht(3*j-2:3*j,1:3) = eye(3);
             Ht(3*j-2:3*j,3*Li(i)+2:3*Li(i)+4) = eye(3);

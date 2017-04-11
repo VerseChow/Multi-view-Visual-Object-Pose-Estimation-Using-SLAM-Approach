@@ -12,6 +12,9 @@ pcd_odom_list = dir([folder_path, '/scene_*_odom.pcd']);
 %set to get the list of non odom files
 pcd_list = setdiff({pcd_list.name}, {pcd_odom_list.name});
 
+%list all the poses files in the folder
+poses_list = dir([folder_path, '/poses/scene_*.txt']);
+
 num_images = length({image_list.name});
 %prev frame
 prev_image = [folder_path, '/', image_list(1).name];
@@ -57,8 +60,9 @@ for i=2:num_images-1
     best_2=[];
     best_2.rgb_pix = temp_2.rgb_pix(:, matches23(1, :));
     best_2.rgb_feat = temp_2.rgb_feat(:, matches23(1, :));
+    poses_file = [folder_path, '/poses/', poses_list(i).name];
     best_2.depth_loc = temp_2.depth_loc(:, matches23(1, :));    
-    best_2.depth_loc = getFeatures3DwrtObjectCenter(best_2.depth_loc, i, folder_path);
+    best_2.depth_loc = getFeatures3DwrtObjectCenter(best_2.depth_loc, poses_file);
     
     hash_table.rgb_pix = [hash_table.rgb_pix, best_2.rgb_pix];
     hash_table.rgb_feat = [hash_table.rgb_feat, best_2.rgb_feat];
