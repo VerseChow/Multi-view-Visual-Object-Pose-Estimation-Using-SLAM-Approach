@@ -28,6 +28,7 @@ function readData( data_path )
         Data.pcd_base = cell(count, 1);
         Data.num = count;
         Data.groundtruth = zeros(3, count);
+        Data.u = zeros(3,count-1);
         for i = 1:count
             FileName_u = d_u(i).name;
             FileName_cam = d_cam_tf(i).name;
@@ -74,6 +75,11 @@ function readData( data_path )
         for i = 1:count-1
             temp =  inv(Data.base_transpose_Matrix{i+1})*Data.base_transpose_Matrix{i};
             Data.G{i} = temp;
+            theta = acos(temp(1,1));
+            rot1 = atan2(temp(2,4), temp(1,4));
+            trans = sqrt(temp(2,4)^2+temp(1,4)^2);
+            rot2 = -rot1 + theta;
+            Data.u(:, i) = [rot1; trans; rot2];
         end
     end
     

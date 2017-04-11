@@ -64,14 +64,14 @@ Param.bbox = 0; % bbox = 20 [m] speeds up graphics
 
 % Structure of global State variable
 %===================================================
-State.Ekf.t     = 0;          % time
-State.Ekf.mu    = zeros(3,1); % robot initial pose
-State.Ekf.Sigma = zeros(3,3); % robot initial covariance
-State.Ekf.iR    = 1:3;        % 3 vector containing robot indices
-State.Ekf.iM    = [];         % 2*nL vector containing map indices
-State.Ekf.iL    = {};         % nL cell array containing indices of landmark i
-State.Ekf.sL    = [];         % nL vector containing signatures of landmarks
-State.Ekf.nL    = 0;          % scalar number of landmarks
+State.t     = 0;          % time
+State.mu    = zeros(4,1); % robot initial pose
+State.Sigma = zeros(4,4); % robot initial covariance
+State.iR    = 1:3;        % 3 vector containing robot indices
+State.iM    = [];         % 2*nL vector containing map indices
+State.iL    = {};         % nL cell array containing indices of landmark i
+State.sL    = [];         % nL vector containing signatures of landmarks
+State.nL    = 0;          % scalar number of landmarks
 %===================================================
 
 switch lower(choice)
@@ -86,26 +86,26 @@ switch lower(choice)
         error('unrecognized selection "%s"', choice);
 end
 figure(2)
-det_array = zeros(1,State.Ekf.nL);
-for i = 1:State.Ekf.nL    
-    det_array(i) = det(State.Ekf.Sigma(2*i+2:2*i+3,2*i+2:2*i+3));    
+det_array = zeros(1,State.nL);
+for i = 1:State.nL    
+    det_array(i) = det(State.Sigma(2*i+2:2*i+3,2*i+2:2*i+3));    
 end
 plot(1:State.Ekf.nL, det_array, '-x');
 xlabel('feature id');
 ylabel('Determinant');
-set(gca,'XTick',[1:1:State.Ekf.nL]);
+set(gca,'XTick',[1:1:State.nL]);
 figure(3)
 subplot(1,2,1);
-correlate_matrix = corrcov(State.Ekf.Sigma(4:2*State.Ekf.nL+3,4:2*State.Ekf.nL+3));
+correlate_matrix = corrcov(State.Sigma(4:2*State.nL+3,4:2*State.nL+3));
 image = (ones(size(correlate_matrix))-correlate_matrix)*255;
 imshow(image, [0 255]);
 subplot(1,2,2);
 hold on;
-for i = 1:State.Ekf.nL
+for i = 1:State.nL
     cor_array = [];
-    for j = 1:State.Ekf.nL
+    for j = 1:State.nL
         cor_array = [cor_array, correlate_matrix(2*i-1,2*j-1)];
     end
-    plot(1:State.Ekf.nL, cor_array);
-    set(gca,'XTick',[1:1:State.Ekf.nL]);
+    plot(1:State.nL, cor_array);
+    set(gca,'XTick',[1:1:State.nL]);
 end
