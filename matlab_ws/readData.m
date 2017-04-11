@@ -41,7 +41,7 @@ function readData( data_path )
             transpose_Matrix(1:3, 4) = temp{1}(1:3);
             transpose_Matrix(1:3, 1:3) = rotm;
             Data.base_transpose_Matrix{i} = transpose_Matrix;
-
+            fclose(fid);
             %%%read cam_base transform
             fprintf(1, 'Now reading %s\n', FileName_cam);
             fid=fopen(fullfile(source_dir, data_path, FileName_cam));
@@ -51,14 +51,14 @@ function readData( data_path )
             transpose_Matrix(1:3, 4) = temp{1}(1:3);
             transpose_Matrix(1:3, 1:3) = rotm;
             Data.cam_transpose_Matrix{i} = transpose_Matrix;
-            
+            fclose(fid);
             %%%read ground truth
             fprintf(1, 'Now reading %s\n', FileName_gt);
             fid=fopen(fullfile(source_dir, data_path, FileName_gt));
             temp = textscan(fid, '%s %f %f %f %f %f %f');
             gt = [temp{1, 2}(1), temp{1, 3}(1), temp{1, 4}(1)]';
             Data.groundtruth(:,i) = gt;
-            
+            fclose(fid);
             %%%read image
             fprintf(1, 'Now reading %s\n', FileName_img);
             Data.image{i} = imread(fullfile(source_dir, data_path, d_img(i).name));

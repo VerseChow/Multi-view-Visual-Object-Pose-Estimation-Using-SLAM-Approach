@@ -1,16 +1,26 @@
-function [path_ekf,path_gt]=runsim() %pauseLen, makeVideo)
+function [path_ekf,path_gt]=runsim(data_path, pauseLen)%, makeVideo)
 %readData('/0_base_link/');
 close all;
 addpath('./../');
 addpath('./../vlfeat-0.9.20/toolbox');
 vl_setup;
 
+%%%read the data
+readData(data_path);
+
+%%%read the groundtruth data
+%readGroundTruthData(data_path);
+
+global tp_link;
 global Param;
 global Data;
 global State;
 global Table;
 
+tp_link = readPCDFile_kar('./tp_link_1.pcd');
 Table = load('hash_table_1.mat');
+
+
 % if ~exist('pauseLen', 'var') || isempty(pauseLen)
 %     pauseLen = [];
 % end
@@ -69,6 +79,8 @@ path_ekf = zeros(2,Data.num-1);
 path_gt = zeros(2,Data.num-1);
     
 State.mu = Param.initialStateMean;
+robot_traj = [];
+obj_traj = [];
 
 for t = 1:Data.num-1
     
@@ -76,7 +88,7 @@ for t = 1:Data.num-1
     %=================================================
     % data available to your filter at this time step
     %=================================================
-    z = hashTableLookup(Data.image{t}, Data.pcd{t}, Data.pcd_base{t});
+    [z, features_orig, indices] = hashTableLookup(Data.image{t}, Data.pcd{t}, Data.pcd_base{t});
 
     u = Data.G{t};
     %=================================================
@@ -84,6 +96,8 @@ for t = 1:Data.num-1
     %      motionCommand and observation
     %=================================================
     predictMotion(u);
+    pred_obj=[State.mu(1:3); 1];
+    pred_Sigma = State.Sigma(1:2, 1:2);
     ekfupdate(z);
     path_ekf(:, t) = State.mu(1:2);
     
@@ -91,10 +105,19 @@ for t = 1:Data.num-1
     %=================================================
     %TODO: plot and evaluate filter results here
     %=================================================
-%     drawnow;
-%     if pauseLen > 0
-%         pause(pauseLen);
-%     end
+    % Trajectory of robot
+    temp = cell2mat(Data.base_transpose_Matrix(t))*[0; 0; 0; 1];
+    robot_traj(:, end+1)= temp(1:3, 1);
+    temp2 = cell2mat(Data.base_transpose_Matrix(t))*[Data.groundtruth(1:3, t); 1];
+    obj_traj(:, end+1) = temp2;
+    z_traj =  cell2mat(Data.base_transpose_Matrix(t))*[z(:, 1:3)'; ones(1, size(z, 1))];
+    %Estimated object pose
+    pred_obj = cell2mat(Data.base_transpose_Matrix(t))*pred_obj; 
+    est_obj = cell2mat(Data.base_transpose_Matrix(t))*[State.mu(1), State.mu(2), State.mu(3), 1]';
+     
+    
+    plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, z_traj, z, features_orig, indices, t, pauseLen);
+%     drawnow;    
 %     
 %     if makeVideo
 %         F = getframe(gcf);
@@ -114,16 +137,60 @@ for t = 1:Data.num-1
     
     State.t = t;
     u = Data.G{t};
-    predictMotion_pure(u);
+    predictMotion(u);
     path_gt(:, t) = State.mu(1:2);
     
 end
+figure(2);
 plot(path_ekf(1,:), path_ekf(2,:));
 hold on;
 plot(path_gt(1,:), path_gt(2,:));
 plot(Data.groundtruth(1,:), Data.groundtruth(2,:));
 legend('after','before','ground truth');
 axis equal;
+end
 
+function plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, z_traj, z, features_orig, indices, t, pauseLen)
+  global Data;
+  global tp_link;
+  global Table;
+  global State;
+  %figure('units','normalized','outerposition',[0 0 1 1])
+  
+  subplot(3, 4, [1:3, 5:7, 9:11]);
+  %robot and obj trajs
+  plot(robot_traj(1, :), robot_traj(2, :), 'r'); hold on;
+  %plot(obj_traj(1, :), obj_traj(2, :), 'b*');
+  line([robot_traj(1, end), est_obj(1)], [robot_traj(2, end), est_obj(2)], 'Color', 'g');
+  %3d points projected into 2d
+  plot(z_traj(1, :), z_traj(2, :), 'g*');
+  plotrobot(robot_traj(1, end), robot_traj(2, end), 0, 'b', 1, 'y'); hold on;
+  plotcircle([obj_traj(1, end), obj_traj(2, end)], 0.02, 100, 'k', 1, 'r');  
+  %sigma of the object pose
+  plotcov2d(est_obj(1), est_obj(2), State.Sigma(1:2, 1:2), 'r', 0, 'r', 0.5, 3);
+  plotcov2d(pred_obj(1), pred_obj(2), pred_Sigma(1:2, 1:2), 'b', 0, 'b', 0.5, 3);
+  axis([[-0.3, 1.2], [-0.15, 1]]);
+  pbaspect([1 1 1])
+  
+  
+  subplot(3, 4, [4,8]);
+  imshow(Data.image{t}); hold on;
+  plot(features_orig.rgb_pix(1, indices), features_orig.rgb_pix(2, indices), 'r*');
+  
+  subplot(3, 4, 12);
+  scatter3(tp_link(:, 1), -tp_link(:, 3), tp_link(:, 2), '.'); hold on;
+  scatter3(Table.hash_table.depth_loc(1, :), -Table.hash_table.depth_loc(3, :), Table.hash_table.depth_loc(2, :), 'r', 'filled'); hold on;
+  scatter3(Table.hash_table.depth_loc(1, z(:, 4)), -Table.hash_table.depth_loc(3, z(:, 4)), Table.hash_table.depth_loc(2, z(:, 4)), 'y', 'filled');
+  view(-20, 16);
+  pbaspect([1.5 1 1])
+  
+  drawnow;
+  if pauseLen > 0
+         pause(pauseLen);
+  end
+  hold off;
+  
+  clf;
+end
 
 

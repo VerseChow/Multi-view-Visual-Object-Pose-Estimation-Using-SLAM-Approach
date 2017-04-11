@@ -1,4 +1,4 @@
-function z = hashTableLookup(observed_image, observed_pcd, observed_pcd_base)
+function [z, features_orig, indices] = hashTableLookup(observed_image, observed_pcd, observed_pcd_base)
 global Table;
 %observed_image is in the mat format after imread 640x480
 %observed_pcd is the point cloud in mat 307200x3 format
@@ -11,7 +11,8 @@ features_orig = getFeaturesOnObject(observed_image, observed_pcd, observed_pcd_b
 [matches, scores] = vl_ubcmatch(Table.hash_table.rgb_feat, features_orig.rgb_feat, 2) ;
 z = [];
 z = [features_orig.depth_loc(:, matches(2, :))', matches(1, :)'];
-writePCDFile(z(:, 1:3), 'observed_features_1.pcd');
+indices = matches(2, :);
+%writePCDFile(z(:, 1:3), 'observed_features_1.pcd');
 
 end
 

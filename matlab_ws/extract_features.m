@@ -34,7 +34,7 @@ while start <= length(images)
         % match the two feature arrays
         [f_next, d_next] = vl_sift(I_next);
         [matches,scores] = vl_ubcmatch(d_curr,d_next);
-        matches
+        %matches
         feats{end+1} = matches;
         f_curr = f_next;
         d_curr = d_next;
