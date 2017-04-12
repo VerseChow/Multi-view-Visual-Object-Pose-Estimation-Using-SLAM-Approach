@@ -3,6 +3,7 @@ function [path_ekf,path_gt]=runsim(data_path, pauseLen)%, makeVideo)
 close all;
 addpath('./../');
 addpath('./../vlfeat-0.9.20/toolbox');
+addpath('./../icp');
 vl_setup;
 
 %%%read the data
@@ -89,6 +90,16 @@ for t = 1:Data.num-1
     % data available to your filter at this time step
     %=================================================
     [z, features_orig, indices] = hashTableLookup(Data.image{t+1}, Data.pcd{t+1}, Data.pcd_base{t+1});
+%    figure;
+%    size(z(:,1))
+%    scatter3(z(:,1),z(:,2),z(:,3),'b');
+    obs = [z(:,1),z(:,2),z(:,3)];
+    ground = [Table.hash_table.depth_loc(1,:);...
+        Table.hash_table.depth_loc(2,:);Table.hash_table.depth_loc(3,:)];
+%    hold on
+%    scatter3(Table.hash_table.depth_loc(1,:),...
+%        Table.hash_table.depth_loc(2,:),Table.hash_table.depth_loc(3,:),'r');
+    [TR TT ER] = icp_standard(obs',ground);
 
     u = Data.G{t};
     %=================================================
