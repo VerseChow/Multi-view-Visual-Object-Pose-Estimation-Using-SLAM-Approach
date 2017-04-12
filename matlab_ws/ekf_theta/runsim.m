@@ -1,5 +1,5 @@
 function [path_ekf,path_gt]=runsim(data_path, pauseLen)%, makeVideo)
-%readData('/0_base_link/');
+%readData('/data_4_8/');
 close all;
 addpath('./../');
 addpath('./../vlfeat-0.9.20/toolbox');
@@ -19,7 +19,7 @@ global Table;
 
 tp_link = readPCDFile_kar('./tp_link.pcd');
 Table = load('hash_table_1.mat');
-
+makeVideo = 1;
 
 % if ~exist('pauseLen', 'var') || isempty(pauseLen)
 %     pauseLen = [];
@@ -37,24 +37,24 @@ State.iL    = {};         % nL cell array containing indices of landmark i
 State.sL    = [];         % nL vector containing signatures of landmarks
 State.nL    = 0;          % scalar number of landmarks
 %===================================================
-% if ~exist('pauseLen','var')
-%     pauseLen = 0.3; % seconds
-% end
+if ~exist('pauseLen','var')
+    pauseLen = 0.3; % seconds
+end
 
-% if makeVideo
-%     try
-%         votype = 'avifile';
-%         vo = avifile('video.avi', 'fps', min(5, 1/pauseLen));
-%     catch
-%         votype = 'VideoWriter';
-%         vo = VideoWriter('video', 'MPEG-4');
-%         set(vo, 'FrameRate', min(5, 1/pauseLen));
-%         open(vo);
-%     end
-% end
-% Initalize Params
+if makeVideo
+    try
+        votype = 'avifile';
+        vo = avifile('video.avi', 'fps', min(5, 1/pauseLen));
+    catch
+        votype = 'VideoWriter';
+        vo = VideoWriter('video', 'Uncompressed AVI');
+        set(vo, 'FrameRate', min(5, 1/pauseLen));
+        open(vo);
+    end
+end
+%Initalize Params
 %===================================================
-Param.initialStateMean = [0.56415 0.85277 0.86562 0]';%%！！！！！！！！！！！！！！！！initialize with first feature detected
+Param.initialStateMean = [Data.groundtruth(:,1);0];%%！！！！！！！！！！！！！！！！initialize with first feature detected
 
 % Motion noise.
 %Param.M = diag([1, 1, 1].*0.1); % std of noise proportional to alphas
@@ -116,22 +116,24 @@ for t = 1:Data.num-1
     est_obj = cell2mat(Data.base_transpose_Matrix(t+1))*[State.mu(1), State.mu(2), State.mu(3), 1]';
      
     
-    plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, z_traj, z, features_orig, indices, t+1, pauseLen);
-%     drawnow;    
-%     
-%     if makeVideo
-%         F = getframe(gcf);
-%         switch votype
-%           case 'avifile'
-%             vo = addframe(vo, F);
-%           case 'VideoWriter'
-%             writeVideo(vo, F);
-%           otherwise
-%             error('unrecognized votype');
-%         end
-%     end
+    plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, z_traj, z, features_orig, indices, t+1, pauseLen,makeVideo,votype,vo);
+    %drawnow;    
+  
 end
 State.mu = Param.initialStateMean;
+
+if makeVideo
+    fprintf('Writing video...');
+    switch votype
+      case 'avifile'
+        vo = close(vo);
+      case 'VideoWriter'
+        close(vo);
+      otherwise
+        error('unrecognized votype');
+    end
+    fprintf('done\n');
+end
 
 for t = 1:Data.num-1
     
@@ -150,7 +152,7 @@ legend('after','before','ground truth');
 axis equal;
 end
 
-function plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, z_traj, z, features_orig, indices, t, pauseLen)
+function plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, z_traj, z, features_orig, indices, t, pauseLen,makeVideo,votype,vo)
   global Data;
   global tp_link;
   global Table;
@@ -183,7 +185,18 @@ function plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, z_traj, z
   scatter3(Table.hash_table.depth_loc(1, z(:, 4)), -Table.hash_table.depth_loc(3, z(:, 4)), Table.hash_table.depth_loc(2, z(:, 4)), 'y', 'filled');
   view(-20, 16);
   pbaspect([1.5 1 1])
-  
+    
+    if makeVideo
+        F = getframe(gcf);
+        switch votype
+          case 'avifile'
+            vo = addframe(vo, F);
+          case 'VideoWriter'
+            writeVideo(vo, F);
+          otherwise
+            error('unrecognized votype');
+        end
+    end
   drawnow;
   if pauseLen > 0
          pause(pauseLen);

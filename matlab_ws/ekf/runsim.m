@@ -17,7 +17,7 @@ global Data;
 global State;
 global Table;
 
-tp_link = readPCDFile_kar('./tp_link_1.pcd');
+tp_link = readPCDFile_kar('./tp_link.pcd');
 Table = load('hash_4_8_data.mat');
 
 
