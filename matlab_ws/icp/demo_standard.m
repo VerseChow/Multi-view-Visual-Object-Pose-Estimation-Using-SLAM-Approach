@@ -52,7 +52,7 @@ size_out = size(D)
 %% Run ICP (standard settings)
 %[Ricp Ticp ER t] = icp(M, D, 15);
 
-[my_R my_T] = icp_standard(M,D);
+[my_R my_T ER] = icp_standard(M,D);
 
 % Transform data-matrix using ICP result
 % Dicp = Ricp * D + repmat(Ticp, 1, n);
@@ -72,3 +72,10 @@ plot3(M(1,:),M(2,:),M(3,:),'bo',Dicp(1,:),Dicp(2,:),Dicp(3,:),'r.');
 axis equal;
 xlabel('x'); ylabel('y'); zlabel('z');
 title('ICP result');
+
+% RMS curve
+subplot(2,2,[3 4]);
+plot(0:15,ER,'--x');
+xlabel('iteration#');
+ylabel('d_{RMS}');
+legend('bruteForce matching');

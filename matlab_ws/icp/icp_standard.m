@@ -1,4 +1,4 @@
-function [TR, TT] = icp_standard(q,p)
+function [TR, TT, ER] = icp_standard(q,p)
 %Perform ICP in a bruteforce manner
 
 iter = 15;
@@ -9,6 +9,7 @@ Np = size(p,2);
 
 % Transformed point cloud
 pt = p;
+ER = zeros(iter+1,1); 
 
 % Temporary transform vec and matrix
 T = zeros(dim,1);
@@ -25,8 +26,11 @@ for k=1:iter
     
     [match, mindist] = match_bruteForce(q,pt, dim);
     p_idx = true(1, Np);
-    q_idx = match;    
+    q_idx = match;
     
+    if k == 1
+        ER(k) = sqrt(sum(mindist.^2)/length(mindist));
+    end
     % Point to point minimization
     [R,T] = eq_point(q(:,q_idx),pt(:,p_idx), weights(p_idx), dim);
     
@@ -35,6 +39,7 @@ for k=1:iter
     
     pt = TR(:,:,k+1) * p + repmat(TT(:,:,k+1),1,Np);
     
+    ER(k+1) = rms_error(q(:,q_idx), pt(:,p_idx));
 end
 
 TR = TR(:,:,end);
@@ -90,4 +95,11 @@ R = V*diag([1 1 det(U*V')])*transpose(U);
 
 T = q_bar - R*p_bar;
 
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function ER = rms_error(p1,p2)
+dsq = sum(power(p1 - p2, 2),1);
+ER = sqrt(mean(dsq));
 end
