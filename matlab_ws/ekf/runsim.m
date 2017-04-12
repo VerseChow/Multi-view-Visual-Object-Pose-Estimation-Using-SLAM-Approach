@@ -93,15 +93,21 @@ for t = 1:Data.num-1
 %    figure;
 %    size(z(:,1))
 %    scatter3(z(:,1),z(:,2),z(:,3),'b');
-    obs = [z(:,1),z(:,2),z(:,3)];
-    ground = [Table.hash_table.depth_loc(1,:);...
-        Table.hash_table.depth_loc(2,:);Table.hash_table.depth_loc(3,:)];
+%    obs = unique([z(:,1),z(:,2),z(:,3)]);
+    obs_indices = z(:,4);
+    ground_filtered = Table.hash_table.depth_loc(:,obs_indices);
+    obs = z(:,1:3);
+    ground = [ground_filtered(1,:);ground_filtered(2,:);ground_filtered(3,:)];
 %    hold on
 %    scatter3(Table.hash_table.depth_loc(1,:),...
 %        Table.hash_table.depth_loc(2,:),Table.hash_table.depth_loc(3,:),'r');
-    [TR TT ER] = icp_standard(obs',ground);
-
-    u = Data.G{t};
+%    [TR TT ER] = icp_standard(obs',ground);
+    [TR TT] = icp(obs',ground);
+    gt = Data.groundtruth(:,t);
+    Dicp = TR * ground + TT;
+    plot_icp(obs',ground,Dicp);
+    
+     u = Data.G{t};
     %=================================================
     %TODO: update your filter here based upon the
     %      motionCommand and observation
@@ -125,9 +131,16 @@ for t = 1:Data.num-1
     %Estimated object pose
     pred_obj = cell2mat(Data.base_transpose_Matrix(t+1))*pred_obj; 
     est_obj = cell2mat(Data.base_transpose_Matrix(t+1))*[State.mu(1), State.mu(2), State.mu(3), 1]';
+%     robot_obj_translate = temp(1:3,1) - temp2(1:3,1);
+%     computed = TT - robot_obj_translate;
+%     final = [computed, gt]
+%     Dicp = TR * ground + TT;
+%    plot_icp(obs',ground,Dicp);
+%    plot_landmark(z);
      
     
-    plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, z_traj, z, features_orig, indices, t+1, pauseLen);
+    plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, ...
+        z_traj, z, features_orig, indices, t+1, pauseLen);
 
 end
 State.mu = Param.initialStateMean;
@@ -196,6 +209,19 @@ function plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, z_traj, z
   view(-20, 16);
   pbaspect([1.5 1 1])
   
+%   subplot(3,5,5);
+%   plot3(M(1,:),M(2,:),M(3,:),'b.',D(1,:),D(2,:),D(3,:),'r.');
+%   axis equal;
+%   xlabel('x'); ylabel('y'); zlabel('z');
+%   title('Original');
+% 
+%   % Plot the results
+%   subplot(3,5,10);
+%   plot3(M(1,:),M(2,:),M(3,:),'b.',Dicp(1,:),Dicp(2,:),Dicp(3,:),'r.');
+%   axis equal;
+%   xlabel('x'); ylabel('y'); zlabel('z');
+%   title('ICP result');
+  
   drawnow;
   if pauseLen > 0
          pause(pauseLen);
@@ -203,6 +229,44 @@ function plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, z_traj, z
   hold off;
   
   clf;
+end
+
+function plot_icp(M,D,Dicp)
+subplot(1,2,1);
+plot3(M(1,:),M(2,:),M(3,:),'b.',D(1,:),D(2,:),D(3,:),'r.');
+axis equal;
+xlabel('x'); ylabel('y'); zlabel('z');
+title('Original');
+
+% Plot the results
+subplot(1,2,2);
+plot3(M(1,:),M(2,:),M(3,:),'b.',Dicp(1,:),Dicp(2,:),Dicp(3,:),'r.');
+axis equal;
+xlabel('x'); ylabel('y'); zlabel('z');
+title('ICP result');
+end
+
+function plot_landmark(z)
+  global Table
+  subplot(1,2,1);
+  scatter3(Table.hash_table.depth_loc(1, :), -Table.hash_table.depth_loc(3, :), Table.hash_table.depth_loc(2, :), 'r', 'filled'); hold on;
+  title('Features in object frame');
+  subplot(1,2,2);
+  scatter3(z(:,1),z(:,2),z(:,3),'b','filled');
+  title('Observations in robot frame');
+end
+
+function [TR, TT] = icp(p,q)
+mu_x = mean(p,2);
+mu_y = mean(q,2);
+
+pt = p - mu_x;
+qt = q - mu_y;
+
+W = pt*qt';
+[U, S, V] = svd(W);
+TR = U*V';
+TT = mu_x - TR * mu_y;
 end
 
 
