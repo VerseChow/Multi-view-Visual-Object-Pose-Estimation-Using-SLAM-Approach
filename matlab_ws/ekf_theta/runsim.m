@@ -174,11 +174,23 @@ function plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, z_traj, z
   %sigma of the object pose
   plotcov2d(est_obj(1), est_obj(2), State.Sigma(1:2, 1:2), 'r', 0, 'r', 0.5, 1);
   plotcov2d(pred_obj(1), pred_obj(2), pred_Sigma(1:2, 1:2), 'b', 0, 'b', 0.5, 1);
+  plotObj(obj_traj(1, end), obj_traj(2, end), 0.285, 0.065, 'g');
+  plotObj(pred_obj(1), pred_obj(2), 0.285, 0.065, 'b');
+  plotObj(est_obj(1), est_obj(2), 0.285, 0.065, 'r');
   axis([[-0.3, 1.2], [-0.15, 1]]);
   pbaspect([1 1 1])
   
+  subplot(3, 4, 4);
+  plot(z_traj(1, :), z_traj(2, :), 'g*'); hold on;
+  plotcircle([obj_traj(1, end), obj_traj(2, end)], 0.01, 100, 'k', 1, 'r');  
+  plotcov2d(est_obj(1), est_obj(2), State.Sigma(1:2, 1:2), 'r', 0, 'r', 0.5, 3);
+  plotcov2d(pred_obj(1), pred_obj(2), pred_Sigma(1:2, 1:2), 'b', 0, 'b', 0.5, 3);
+  plotObj(obj_traj(1, end), obj_traj(2, end), 0.285, 0.065, 'g');
+  plotObj(pred_obj(1), pred_obj(2), 0.285, 0.065, 'b');
+  plotObj(est_obj(1), est_obj(2), 0.285, 0.065, 'r');
+  axis([[0.45, 0.8], [0.8, 1]]);
   
-  subplot(3, 4, [4,8]);
+  subplot(3, 4, 8);
   imshow(Data.image{t}); hold on;
   plot(features_orig.rgb_pix(1, indices), features_orig.rgb_pix(2, indices), 'r*');
   
