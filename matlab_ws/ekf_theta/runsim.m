@@ -19,7 +19,7 @@ global Table;
 
 tp_link = readPCDFile_kar('./tp_link.pcd');
 Table = load('hash_table_1.mat');
-makeVideo = 1;
+makeVideo = 0;
 
 % if ~exist('pauseLen', 'var') || isempty(pauseLen)
 %     pauseLen = [];
@@ -115,9 +115,12 @@ for t = 1:Data.num-1
     pred_obj = cell2mat(Data.base_transpose_Matrix(t+1))*pred_obj; 
     est_obj = cell2mat(Data.base_transpose_Matrix(t+1))*[State.mu(1), State.mu(2), State.mu(3), 1]';
      
-    
-    plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, z_traj, z, features_orig, indices, t+1, pauseLen,makeVideo,votype,vo);
-    %drawnow;    
+    if makeVideo
+        plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, z_traj, z, features_orig, indices, t+1, pauseLen,makeVideo,votype,vo);
+    else
+        plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, z_traj, z, features_orig, indices, t+1, pauseLen, 0, 0, 0);
+    end
+        %drawnow;    
   
 end
 State.mu = Param.initialStateMean;
