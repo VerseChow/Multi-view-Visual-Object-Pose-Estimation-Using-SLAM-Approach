@@ -102,10 +102,15 @@ for t = 1:Data.num-1
 %    scatter3(Table.hash_table.depth_loc(1,:),...
 %        Table.hash_table.depth_loc(2,:),Table.hash_table.depth_loc(3,:),'r');
 %    [TR TT ER] = icp_standard(obs',ground);
-    [TR TT] = icp(obs',ground);
+    [TR TT] = icp_std(obs',ground);
     gt = Data.groundtruth(:,t);
-    Dicp = TR * ground + TT;
-    plot_icp(obs',ground,Dicp);
+
+    [TR_std TT_std] = icp(obs',ground,15);
+    [TR_kd TT_kd] = icp(obs',ground,15,'Matching','kDtree','Extrapolation',true);    
+    Dicp_closed = TR * ground + TT;
+    Dicp_std = TR_std * ground + TT_std;
+    Dicp_kd = TR_kd * ground + TT_kd
+    plot_icp(obs',ground,Dicp_closed, Dicp_std, Dicp_kd);
     
      u = Data.G{t};
     %=================================================
@@ -231,19 +236,31 @@ function plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, z_traj, z
   clf;
 end
 
-function plot_icp(M,D,Dicp)
-subplot(1,2,1);
+function plot_icp(M,D,Dicp_1,Dicp_2,Dicp_3)
+subplot(1,4,1);
 plot3(M(1,:),M(2,:),M(3,:),'b.',D(1,:),D(2,:),D(3,:),'r.');
 axis equal;
 xlabel('x'); ylabel('y'); zlabel('z');
-title('Original');
+title('Original features');
 
 % Plot the results
-subplot(1,2,2);
-plot3(M(1,:),M(2,:),M(3,:),'b.',Dicp(1,:),Dicp(2,:),Dicp(3,:),'r.');
+subplot(1,4,2);
+plot3(M(1,:),M(2,:),M(3,:),'b.',Dicp_1(1,:),Dicp_1(2,:),Dicp_1(3,:),'r.');
 axis equal;
 xlabel('x'); ylabel('y'); zlabel('z');
-title('ICP result');
+title('Closed Form');
+
+subplot(1,4,3);
+plot3(M(1,:),M(2,:),M(3,:),'b.',Dicp_2(1,:),Dicp_2(2,:),Dicp_2(3,:),'r.');
+axis equal;
+xlabel('x'); ylabel('y'); zlabel('z');
+title('Brute Force');
+
+subplot(1,4,4);
+plot3(M(1,:),M(2,:),M(3,:),'b.',Dicp_3(1,:),Dicp_3(2,:),Dicp_3(3,:),'r.');
+axis equal;
+xlabel('x'); ylabel('y'); zlabel('z');
+title('KD Tree');
 end
 
 function plot_landmark(z)
@@ -256,7 +273,7 @@ function plot_landmark(z)
   title('Observations in robot frame');
 end
 
-function [TR, TT] = icp(p,q)
+function [TR, TT] = icp_std(p,q)
 mu_x = mean(p,2);
 mu_y = mean(q,2);
 
