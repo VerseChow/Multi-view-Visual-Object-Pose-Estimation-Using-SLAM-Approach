@@ -3,8 +3,7 @@ function predictMotion(u)
 %   Detailed explanation goes here 
     global State
     global Param
-    
-    %Qf = Param.Qf;
+
     M = zeros(3,3);
     M(1,1) = Param.alphas(1)*u(1)^2+Param.alphas(2)*u(2)^2;
     M(2,2) = Param.alphas(3)*u(2)^2+Param.alphas(4)*(u(1)^2+u(3)^2);
