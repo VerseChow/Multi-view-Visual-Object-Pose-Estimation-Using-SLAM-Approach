@@ -1,3 +1,5 @@
+%% Based on Jakob's code: https://www.mathworks.com/matlabcentral/fileexchange/27804-iterative-closest-point
+
 m = 80; % width of grid
 n = m^2; % number of points
 
