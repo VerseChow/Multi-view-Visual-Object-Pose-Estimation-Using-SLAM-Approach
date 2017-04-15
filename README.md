@@ -16,3 +16,5 @@ We have a dataset for demo, you could download the dataset from https://drive.go
 
 4. For detailed instructions on how to run the program, follow [wiki](https://github.com/VerseChow/Multi-view-Visual-Object-Pose-Estimation-Using-SLAM-Approach/wiki)
 
+5. Make sure include VlFeat binary package as mentioned in [wiki](https://github.com/VerseChow/Multi-view-Visual-Object-Pose-Estimation-Using-SLAM-Approach/wiki)
+
