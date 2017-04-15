@@ -18,5 +18,5 @@ We have a dataset for demo, you could download the dataset from https://drive.go
 
 5. Make sure include VlFeat binary package as mentioned in [wiki](https://github.com/VerseChow/Multi-view-Visual-Object-Pose-Estimation-Using-SLAM-Approach/wiki)
 
-6. ICP code is updated based on the code from [Bergström & Edlund 2014] which is referred in the /matlab_ws/
+6. ICP code is based on the code from [Jakob Wilm](https://www.mathworks.com/matlabcentral/fileexchange/27804-iterative-closest-point)
 
