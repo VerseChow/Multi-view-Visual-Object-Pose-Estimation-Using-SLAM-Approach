@@ -210,12 +210,12 @@ function plotting(robot_traj, obj_traj, est_obj, pred_obj, pred_Sigma, z_traj, z
   pbaspect([1 1 1])
   
   %sigma of landmark covariance
-%   for i = 1:State.nL
-%       landmark_mu = cell2mat(Data.base_transpose_Matrix(t))*[State.mu(State.iL{i}); 1];
-%       Sigma = State.Sigma(State.iL{i}, State.iL{i});
-%       plot(landmark_mu(1), landmark_mu(2), 'b*');
-%       plotcov2d(landmark_mu(1), landmark_mu(2), Sigma(1:2, 1:2), 'b', 0, 'b', 0.5, 0.1);
-%   end
+  for i = 1:State.nL
+      landmark_mu = cell2mat(Data.base_transpose_Matrix(t))*[State.mu(State.iL{i}); 1];
+      Sigma = State.Sigma(State.iL{i}, State.iL{i});
+      plot(landmark_mu(1), landmark_mu(2), 'b*');
+      plotcov2d(landmark_mu(1), landmark_mu(2), Sigma(1:2, 1:2), 'b', 0, 'b', 0.5, 0.1);
+  end
   
   subplot(3, 4, 4);
   plot(z_traj(1, :), z_traj(2, :), 'g*'); hold on;
