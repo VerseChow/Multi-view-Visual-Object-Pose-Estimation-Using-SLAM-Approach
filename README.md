@@ -8,8 +8,6 @@ In ROOTFOLDER, run demo.m, make sure to specify the path of Dataset
 We have a dataset for demo, you could download the dataset from https://drive.google.com/drive/folders/0BwzTAZGR6DHdTHctTVVkMWZwSG8?usp=sharing
 
 3. Also we have the vedio for our demo, please click the following link:	
-
-
 [EKF-SLAM Pose Estimation](https://www.youtube.com/watch?v=gFre66fHZDo)
 
 
